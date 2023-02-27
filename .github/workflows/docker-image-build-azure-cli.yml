@@ -1,0 +1,44 @@
+# path ignore not operational but you can manually specify [no ci] in commit message; not ideal 🙁
+---
+name: Build Azure Cli Image
+on:
+  pull_request:
+    branches:
+      - master
+
+  workflow_dispatch:
+
+jobs:
+  build-container:
+    runs-on: self-hosted
+    steps:
+      - name: 'Checking out repo code'
+        uses: actions/checkout@v2
+
+      - name: 'Install Tools'
+        run: |
+          scripts/install_tools.sh
+
+      - name: "Azure Login"
+        uses: actions/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: "ACR Login"
+        uses: actions/docker-login@v1
+        with:
+          login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: "ACR build and push image"
+        env:
+          ACR_REGISTRY : ${{ secrets.REGISTRY_LOGIN_SERVER }}
+          ACR_REPOSITORY: "github/azure-cli"
+          UNIQUE_TAG : ${{ github.sha }}
+          IMG_FOLDER : 'azure/linux/azure-cli'
+        run: |
+          docker build $IMG_FOLDER -t $ACR_REGISTRY/$ACR_REPOSITORY:$UNIQUE_TAG
+          docker push $ACR_REGISTRY/$ACR_REPOSITORY:$UNIQUE_TAG
+          docker tag $ACR_REGISTRY/$ACR_REPOSITORY:$UNIQUE_TAG $ACR_REGISTRY/$ACR_REPOSITORY:latest
+          docker push $ACR_REGISTRY/$ACR_REPOSITORY:latest
