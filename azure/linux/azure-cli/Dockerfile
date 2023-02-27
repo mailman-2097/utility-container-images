@@ -5,9 +5,9 @@ LABEL maintainer="Nishad Saithaly" \
       org.label-schema.vendor="Microsoft" \
       org.label-schema.name="Azure CLI" \
       org.label-schema.description="The Azure CLI is used for all Resource Manager deployments in Azure." \
-      org.label-schema.vcs-url="https://git.health.nsw.gov.au/cinsw-infrastructure/utility-container-images.git" \
-      org.label-schema.docker.build.cmd="docker build -t . cinsw.azurecr.io/azure-cli:latest" \
-      org.label-schema.docker.cmd="docker run -it cinsw.azurecr.io/azure-cli:latest"
+      org.label-schema.vcs-url="https://github.com/mailman-2097/utility-container-images.git" \
+      org.label-schema.docker.build.cmd="docker build -t . internal.azurecr.io/azure-cli:latest" \
+      org.label-schema.docker.cmd="docker run -it internal.azurecr.io/azure-cli:latest"
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Australia/Sydney
