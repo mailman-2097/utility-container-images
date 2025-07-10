@@ -1,0 +1,50 @@
+# Use an appropriate base image
+FROM registry.access.redhat.com/ubi8/ubi:latest AS builder
+
+# Set the user
+USER root
+ENV NVM_HOME="/usr/local"
+
+# Pre-Install dependencies
+RUN dnf install -y curl tar gzip && dnf clean all && [ ! -d $NVM_HOME/.nvm ] && mkdir -p $NVM_HOME/.nvm
+
+# Set environment variables
+ENV NVM_DIR=$NVM_HOME/.nvm
+ENV NODE_VERSION=11.15.0
+ENV COMPOSER_VERSION=2.7.5
+
+# Install Node.js using nvm
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+
+RUN source $NVM_DIR/nvm.sh && nvm install $NODE_VERSION
+
+# Install Composer
+RUN dnf module enable -y php:7.4 && \
+    dnf install -y \
+    php \
+    php-cli \
+    php-mbstring \
+    php-xml \
+    php-pgsql \
+    php-pdo \
+    php-zip \
+    php-curl \
+    && dnf clean all
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# validate the installation
+RUN source $NVM_DIR/nvm.sh && \
+    nvm current && \
+    node --version && \
+    npm --version && \
+    php --version && \
+    composer --version
+
+RUN echo 'nvm use '"$NODE_VERSION" >> ~/.bashrc
+RUN echo '[ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc"' >> ~/.profile
+
+COPY resources/k8s/node.entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
