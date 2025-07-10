@@ -1,0 +1,57 @@
+# Use an appropriate base image
+FROM registry.access.redhat.com/ubi8/ubi:latest AS builder
+
+# Set the user
+USER root
+
+# Pre-Install dependencies
+RUN dnf install -y curl tar gzip diffutils && dnf clean all 
+
+# Set environment variables
+ENV COMPOSER_VERSION=2.7.2
+
+# Install Composer
+RUN dnf module reset php && \
+    dnf module enable -y php:7.4 && \
+    dnf install -y \
+    php \
+    php-bz2 \
+    php-calendar \
+    php-cli \
+    php-ctype \
+    php-curl \
+    php-dom \
+    php-exif \
+    php-fileinfo \
+    php-ftp \
+    php-gettext \
+    php-iconv \
+    php-mbstring \
+    php-pdo \
+    php-pdo_pgsql \
+    php-pdo_sqlite \
+    php-pgsql \
+    php-phar \
+    php-simplexml \
+    php-sockets \
+    php-sqlite3 \
+    php-tokenizer \
+    php-xml \
+    php-xmlreader \
+    php-xmlwriter \
+    php-xsl \
+    php-zip \
+    && dnf clean all
+
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# validate the installation
+RUN php --version && \
+    composer --version
+
+COPY resources/k8s/php.entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+USER 1000
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
